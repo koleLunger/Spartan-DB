@@ -1,45 +1,90 @@
-const express = require('express'); // Express framework
-const app = express();
-const request = require('request')
-const options = {
-  url: 'http://api.github.com/repos/josh-daisey/Spartan-DB',
-  method: 'GET',
-  headers: { 'User-Agent': 'Mozilla/5.0' }
-}
-
+let sqlite3 = require('sqlite3');
+let express = require('express');
 let session = require('express-session');
-// Set up session with express
+let bodyParser = require('body-parser');
+let path = require('path');
+let url = require('url');
+let pug = require('pug');
+
+let db = new sqlite3.Database('db/database.db');
+
+let app = express();
+ 
+// sets pug as the default engine for website
+app.set('view engine', 'pug')
+
+// sets the folder for pugs templates
+app.set("views", path.join(__dirname, "views"));
+
+
 app.use(session({
 	secret: 'secret',
 	resave: true,
 	saveUninitialized: true
 }));
-let path = require('path');
 
-const sqlite3 = require('sqlite3'); // Interfaces with sqlite3 database
-// const db = new sqlite3.Database('database/JSFdatabase.db');
-
-const bodyParser = require('body-parser'); // Parses data from http request bodies
-//S et up bodyParser with express
-app.use(bodyParser.urlencoded({
-	extended: true
-}));
+app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
-//Set up web folders
-app.use(express.static("public"));
+function generateKey() {
+	let result           = '';
+	let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	let charactersLength = characters.length;
+	for (let i = 0; i < 32; i++ ) {
+	   result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	}
+	return result;
+ }
 
-app.get("/github", function (req, res) {
-	request(options, function(request_err, request_res, request_body) {
-        if (request_err || request_res.statusCode != 200) {
-            res.send("Oops! There was a problem with the request module: <br>" + request_err);
-        } else {
-            res.status(200).send(request_body);
-        }
-    })
+ function setUserKey(username){
+
+	db.run('UPDATE accounts SET key = ? WHERE username = ?', [generateKey(), username], function(err) {
+	if (err) {
+		return console.error(err.message);
+		}
+	});
+}
+
+app.get('/', function(req, res) {
+	
+	res.render("login", {ip: req.query.ip});
+
 });
 
-app.listen(3001, function() {
-	console.log('Listening on port ' + 3001 + '.');
+app.post('/auth', function(req, res) {
+	let username = req.body.username;
+	let password = req.body.password;
+	let ip = req.body.ip;
+
+	if (username && password) {
+		db.get('SELECT * FROM accounts WHERE username = \'' + username + '\' AND password = \'' + password + '\';', function(err, results) {
+			if (err)
+				console.log(err);
+			if (results) {
+				setUserKey(username)
+				db.get('SELECT * FROM accounts WHERE username = \'' + username + '\' ;', function(err, results){
+					res.redirect(url.format({
+					pathname: ip,
+					query: {
+						key: results['key']
+					}
+					
+				}));
+				res.end();
+				});
+				
+			} else {
+				res.send('Incorrect Username and/or Password!');
+				res.end();
+			}
+				
+		});
+	} else {
+		res.send('Please enter Username and Password!');
+		res.end();
+	}
 });
 
+app.listen(3000);
+
+console.log("Server starting on port 3000")
