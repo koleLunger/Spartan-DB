@@ -1,3 +1,4 @@
+//comment for this weeks goal
 let sqlite3 = require('sqlite3');
 let express = require('express');
 let session = require('express-session');
@@ -9,7 +10,7 @@ let pug = require('pug');
 let db = new sqlite3.Database('db/database.db');
 
 let app = express();
- 
+
 // sets pug as the default engine for website
 app.set('view engine', 'pug')
 
@@ -50,7 +51,7 @@ function successfulLogin(username){
 }
 
 app.get('/', function(req, res) {
-	
+
 	res.render("login", {ip: req.query.ip});
 
 });
@@ -72,16 +73,16 @@ app.post('/auth', function(req, res) {
 					query: {
 						key: results.key
 					}
-					
+
 				}));
 				res.end();
 				});
-				
+
 			} else {
 				res.send('Incorrect Username and/or Password!');
 				res.end();
 			}
-				
+
 		});
 	} else {
 		res.send('Please enter Username and Password!');
