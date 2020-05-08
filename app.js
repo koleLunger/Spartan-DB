@@ -11,7 +11,7 @@ let db = new sqlite3.Database('db/database.db');
 
 let app = express();
 
-const PORT = 3000;
+const PORT = 3000;vv
 
 // sets pug as the default engine for website
 app.set('view engine', 'pug');
