@@ -17,6 +17,7 @@ button.addEventListener('click', function(){
     messages.value = "";
 });
 
+// if keys are pressed displays typing
 messages.addEventListener('keypress', function(){
     socket.emit('typing', handle.value);
 })
