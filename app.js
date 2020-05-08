@@ -11,7 +11,8 @@ let db = new sqlite3.Database('db/database.db');
 
 let app = express();
 
-const PORT = 3000;vv
+ // listen to port 3000
+const PORT = 3000;
 
 // sets pug as the default engine for website
 app.set('view engine', 'pug');
@@ -30,7 +31,7 @@ app.use(bodyParser.urlencoded({
 	extended: true
 }));
 app.use(bodyParser.json());
-
+ // Sets a callback function to check the expiration date
 function checkExpiration(key, callback) {
 	db.get('SELECT * FROM accounts WHERE key = \'' + key + '\' ;', function (err, results) {
 
